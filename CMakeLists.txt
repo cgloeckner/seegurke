@@ -16,6 +16,7 @@ set(SEEGURKE_DEPS
 # group sources
 
 set(SEEGURKE_PROTO_SRC
+	src/proto/cannonball.cpp
 	src/proto/sea.cpp
 	src/proto/ship.cpp
 	src/proto/main.cpp

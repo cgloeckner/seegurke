@@ -3,12 +3,15 @@
 
 namespace proto {
 
-Ship::Ship(sf::Vector2f position, sf::Texture const & tex)
-	: position{position}
+Ship::Ship(CannonballSystem& system, sf::Vector2f position, sf::Texture const & tex)
+	: sf::Drawable{}
+	, system{system}
+	, position{position}
 	, rotation{0.f, -1.f}
 	, angle{0.f}
 	, moving{false}
-	, sprite{tex} {
+	, sprite{tex}
+	, cooldown{sf::Time::Zero} {
 	sprite.setOrigin(sf::Vector2f{tex.getSize()} / 2.f);
 }
 
@@ -34,7 +37,20 @@ void Ship::stop() {
 	moving = false;
 }
 
+void Ship::shoot() {
+	if (cooldown == sf::Time::Zero) {
+		cooldown = sf::milliseconds(750);
+		system.create(position, angle + 90.f);
+		system.create(position, angle - 90.f);
+	}
+}
+
 void Ship::update(sf::Time elapsed) {
+	cooldown -= elapsed;
+	if (cooldown < sf::Time::Zero) {
+		cooldown = sf::Time::Zero;
+	}
+	
 	if (moving) {
 		if (delta != 0.f) {
 			angle += delta * elapsed.asSeconds() * 25.f;

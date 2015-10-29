@@ -3,7 +3,8 @@
 namespace proto {
 
 Sea::Sea(sf::Texture const & tex)
-	: tiles{sf::Quads}
+	: sf::Drawable{}
+	, tiles{sf::Quads}
 	, tex{tex} {
 	auto tilesize = sf::Vector2f{tex.getSize()};
 	for (auto y = 0u; y < 10u; ++y) {
