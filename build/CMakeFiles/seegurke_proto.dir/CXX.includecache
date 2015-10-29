@@ -1,0 +1,18 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../include/proto/sea.hpp
+SFML/Graphics.hpp
+-
+SFML/System.hpp
+-
+
+/home/christian/Dropbox/Programmierung/git/seegurke/src/proto/sea.cpp
+proto/sea.hpp
+-
+
