@@ -1,1 +1,0 @@
-/home/christian/Dropbox/Programmierung/git/seegurke/build/CMakeFiles/seegurke_proto.dir
