@@ -26,8 +26,8 @@ int main() {
 	proto::CannonballSystem balls{cannonball_tex};
 	proto::Sea sea{water_tex};
 	proto::Ship player{balls, {384u, 384u}, ship_tex};
+	player.cannonball_distance = 200.f;
 	proto::Ship enemy{balls, {640u, 384}, ship_tex};
-	enemy.cannonball_distance = 200.f;
 	enemy.move();
 	auto ai_delay = sf::Time::Zero;
 	

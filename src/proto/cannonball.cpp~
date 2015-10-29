@@ -40,7 +40,7 @@ std::size_t CannonballSystem::create(sf::Vector2f position, float angle, float d
 	sf::Transform t;
 	t.rotate(angle);
 	ball.direction = t.transformPoint({0.f, -1.f});
-	ball.min_dist = distance;
+	ball.min_distance = distance;
 	
 	return ball.id;
 }
@@ -59,10 +59,10 @@ void CannonballSystem::update(sf::Time elapsed) {
 		auto delta = speed * ball.speed;
 		ball.distance += delta;
 		ball.sprite.move(ball.direction * delta);
-		if (ball.distance <= ball.min_dist * CANNONBALL_RISE_RATIO) {
+		if (ball.distance <= ball.min_distance * CANNONBALL_RISE_RATIO) {
 			// make it rise
 			ball.sprite.scale(CANNONBALL_RISE_SCALE, CANNONBALL_RISE_SCALE);
-		} else if (ball.distance >= ball.min_dist) {
+		} else if (ball.distance >= ball.min_distance) {
 			// make it fall
 			ball.sprite.scale(CANNONBALL_FALL_SCALE, CANNONBALL_FALL_SCALE);
 			// slow it down

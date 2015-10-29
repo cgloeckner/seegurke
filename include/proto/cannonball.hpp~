@@ -27,7 +27,7 @@ class CannonballSystem
 	public:
 		CannonballSystem(sf::Texture const & tex);
 		
-		std::size_t create(sf::Vector2f position, float angle, float distance);
+		std::size_t create(sf::Vector2f position, float angle);
 		void destroy(std::size_t id);
 		void update(sf::Time elapsed);
 };

@@ -41,8 +41,8 @@ void Ship::stop() {
 void Ship::shoot() {
 	if (cooldown == sf::Time::Zero) {
 		cooldown = sf::seconds(SHIP_SHOOT_DELAY);
-		system.create(position, angle + 90.f, cannonball_distance);
-		system.create(position, angle - 90.f, cannonball_distance);
+		system.create(position, angle + 90.f);
+		system.create(position, angle - 90.f);
 	}
 }
 
