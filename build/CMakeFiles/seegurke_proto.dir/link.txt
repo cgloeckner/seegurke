@@ -1,0 +1,1 @@
+/usr/bin/clang++    -std=c++11 -Werror -Wall -ferror-limit=20 -g -O0    CMakeFiles/seegurke_proto.dir/src/proto/sea.cpp.o CMakeFiles/seegurke_proto.dir/src/proto/ship.cpp.o CMakeFiles/seegurke_proto.dir/src/proto/main.cpp.o  -o seegurke_proto -rdynamic -lsfml-system -lsfml-graphics -lsfml-window -lsfml-audio -lthor 
