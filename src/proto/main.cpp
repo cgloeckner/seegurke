@@ -56,6 +56,7 @@ int main() {
 	});
 	
 	sf::Clock clock;
+	window.setFramerateLimit(60u);
 	while (window.isOpen()) {
 		sf::Event event;
 		while (window.pollEvent(event)) {
