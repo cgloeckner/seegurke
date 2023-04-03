@@ -50,8 +50,40 @@ class Quad:
     def __init__(self, ctx: moderngl.Context, pos: pygame.math.Vector2, size: pygame.math.Vector2):
         self.position = pos
         self.rotation = 0
-        self.z_pos = 0
-        w, h = size.xy
+        self.size = size
+        self.__scale = 1.0
+
+        # create shader program
+        self.shader = ctx.program(vertex_shader=vertex_shader, fragment_shader=fragment_shader)
+        self.vbo = None
+        self.vao = None
+
+        self.ctx = ctx
+        self.build_vbo()
+
+        # apply textures
+        self.texture = None
+        self.texture_index = 0
+        self.shader['u_texture_0'] = 0
+
+    def get_scale(self) -> float:
+        return self.__scale
+
+    def set_scale(self, value: float):
+        self.__scale = value
+        self.build_vbo()
+
+    scale = property(get_scale, set_scale)
+
+    def build_vbo(self):
+        if self.vbo is not None:
+            self.vbo.release()
+        if self.vao is not None:
+            self.vao.release()
+
+        w, h = self.size.xy
+        w *= self.__scale
+        h *= self.__scale
 
         # build vertex data
         vertices = [(-w/2, -h/2, 0.0), (w/2, -h/2, 0.0), (w/2, h/2, 0.0), (-w/2, h/2, 0.0)]
@@ -68,26 +100,21 @@ class Quad:
         tex_coord_data = build_vertices(tex_coord, tex_coord_indices)
         vertex_data = numpy.hstack([tex_coord_data, vertex_data])
 
-        # create vertex buffer object, shader program and vertex array object
-        self.vbo = ctx.buffer(vertex_data)
-        self.shader = ctx.program(vertex_shader=vertex_shader, fragment_shader=fragment_shader)
-        self.vao = ctx.vertex_array(self.shader, [(self.vbo, '2f 3f', 'in_texcoord_0', 'in_position')])
-
-        # apply textures
-        self.texture = None
-        self.texture_index = 0
-        self.shader['u_texture_0'] = 0
+        self.vbo = self.ctx.buffer(vertex_data)
+        self.vao = self.ctx.vertex_array(self.shader, [(self.vbo, '2f 3f', 'in_texcoord_0', 'in_position')])
 
     def __del__(self):
-        self.vbo.release()
         self.shader.release()
-        self.vao.release()
+        if self.vbo is not None:
+            self.vbo.release()
+        if self.vao is not None:
+            self.vao.release()
 
     def render(self, m_view: glm.mat4x4, m_proj: glm.mat4x4) -> None:
         if self.texture is None:
             return
 
-        m_model = glm.translate(glm.mat4(), glm.vec3(*self.position, self.z_pos))
+        m_model = glm.translate(glm.mat4(), glm.vec3(*self.position, 0))
         m_model *= glm.rotate(glm.mat4(), glm.radians(self.rotation), glm.vec3(0, 0, 1))
 
         self.texture.use()

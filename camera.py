@@ -37,20 +37,21 @@ class Camera:
             self.position += self.right * velocity
         if keys[pygame.K_a]:
             self.position -= self.right * velocity
-        """
-        """
+        
         if keys[pygame.K_q]:
             self.position += self.into * velocity
         if keys[pygame.K_e]:
             self.position -= self.into * velocity
-        """
+        print(self.position)
 
         # limit z-position
         if self.position.z <= 0:
             self.position.z = 0.1
         # FIXME: implement camera rotation but also rotate up/right vectors accordingly
+        """
 
         self.m_view = self.get_view_matrix()
+        self.m_proj = self.get_projection_matrix()
 
     def get_view_matrix(self) -> glm.mat4x4:
         """Recalculate view matrix after camera got moved"""
@@ -62,7 +63,13 @@ class Camera:
         return glm.perspective(glm.radians(FOV), self.aspect_ratio, NEAR, FAR)
 
 
-class GuiCamera(Camera):
+class OrthoCamera(Camera):
+    def get_projection_matrix(self) -> glm.mat4x4:
+        return glm.ortho(-1 * self.aspect_ratio * self.position.z, 1 * self.aspect_ratio * self.position.z, -1 * self.position.z, 1 * self.position.z, NEAR, FAR)
+
+
+
+class GuiCamera(OrthoCamera):
     def __init__(self, window: pygame.Surface):
         super().__init__(window)
 
