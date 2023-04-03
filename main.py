@@ -9,6 +9,7 @@ from typing import List
 
 from camera import Camera, GuiCamera
 from sprite import create_texture, Quad, Animator
+from control import KeyboardControls
 
 
 class WaterTiles(object):
@@ -38,7 +39,6 @@ class WaterTiles(object):
                 self.model.render(cam.m_view, cam.m_proj)
 
 
-
 class Ship(object):
     def __init__(self, ctx: moderngl.Context, img_list: List[pygame.Surface]):
         self.tex = [create_texture(ctx, img) for img in img_list]
@@ -47,6 +47,9 @@ class Ship(object):
         self.ani = Animator(self.tex, 1500)
 
         self.swim_ms = random.randrange(5000)
+
+    def steer(self, value):
+        self.model.rotation += value
 
     def update(self, elapsed_ms: int, wind: pygame.math.Vector2) -> None:
         # frame animation
@@ -66,16 +69,52 @@ class Ship(object):
         self.model.render(cam.m_view, cam.m_proj)
 
 
-def main():
+class Wind(object):
+    def __init__(self, ctx: moderngl.Context, img: pygame.Surface):
+        # wind rose (GUI mode)
+        self.model = Quad(ctx, pygame.math.Vector2(50, 50), pygame.math.Vector2(100, 100))
+        self.model.texture = create_texture(ctx, img)
+
+        # actual wind vector
+        self.vector = pygame.math.Vector2(1, 0).rotate(random.randrange(360))
+        self.elapsed = 0
+        self.angle = 0
+
+    def update(self, elapsed_ms: int) -> None:
+        self.elapsed += elapsed_ms
+
+        if self.angle != 0:
+            angle = (self.angle / elapsed_ms) * 0.1
+            self.vector.rotate_ip(angle)
+            self.model.rotation += angle
+
+        if self.elapsed < 1000:
+            return
+
+        # set new direction
+        self.angle = (random.randrange(3) - 1) * 45
+        self.elapsed -= 1000
+
+    def render(self, cam: GuiCamera) -> None:
+        self.model.render(cam.m_view, cam.m_proj)
+
+
+def init(width, height):
     pygame.init()
     pygame.display.gl_set_attribute(pygame.GL_CONTEXT_MAJOR_VERSION, 3)
     pygame.display.gl_set_attribute(pygame.GL_CONTEXT_MINOR_VERSION, 3)
     pygame.display.gl_set_attribute(pygame.GL_CONTEXT_PROFILE_MASK, pygame.GL_CONTEXT_PROFILE_CORE)
 
-    window = pygame.display.set_mode((800, 600), flags=pygame.OPENGL | pygame.DOUBLEBUF)
+    window = pygame.display.set_mode((width, height), flags=pygame.OPENGL | pygame.DOUBLEBUF)
     context = moderngl.create_context()
     context.enable(flags=moderngl.BLEND)
     clock = pygame.time.Clock()
+
+    return window, context, clock
+
+
+def main():
+    window, context, clock = init(800, 600)
 
     scene_cam = Camera(window)
     scene_cam.position.z = 2
@@ -83,16 +122,19 @@ def main():
 
     water_tiles = WaterTiles(context, [pygame.image.load(f'data/water{n:02d}.png') for n in range(4)])
 
-    ship = Ship(context, [pygame.image.load(f'data/ship{n:02d}.png') for n in range(2)])
+    ship1 = Ship(context, [pygame.image.load(f'data/ship{n:02d}.png') for n in range(2)])
     ship2 = Ship(context, [pygame.image.load(f'data/ship{n:02d}.png') for n in range(2)])
     ship2.model.position.x = 2
 
-    wind_img = pygame.image.load('data/wind.png')
-    wind_tex = create_texture(context, wind_img)
-    wind_sprite = Quad(context, pygame.math.Vector2(50, 50), pygame.math.Vector2(100, 100))
-    wind_sprite.texture = wind_tex
+    key1 = KeyboardControls()
+    key1[pygame.K_a] = lambda ms: ship1.steer(0.02 * ms)
+    key1[pygame.K_d] = lambda ms: ship1.steer(-0.02 * ms)
 
-    wind_vector = pygame.math.Vector2(0, 1)
+    key2 = KeyboardControls()
+    key2[pygame.K_LEFT] = lambda ms: ship2.steer(0.02 * ms)
+    key2[pygame.K_RIGHT] = lambda ms: ship2.steer(-0.02 * ms)
+
+    wind = Wind(context, pygame.image.load('data/wind.png'))
 
     elapsed_ms = 0
 
@@ -104,34 +146,25 @@ def main():
 
         # animate water tile
         water_tiles.update(elapsed_ms)
+        wind.update(elapsed_ms)
 
-        keys = pygame.key.get_pressed()
-
-        # Schiff 1
-        if keys[pygame.K_a]:
-            ship.model.rotation += 0.02 * elapsed_ms
-        if keys[pygame.K_d]:
-            ship.model.rotation -= 0.02 * elapsed_ms
-        ship.update(elapsed_ms, wind_vector)
-
-        # Schiff 2
-        if keys[pygame.K_LEFT]:
-            ship2.model.rotation += 0.02 * elapsed_ms
-        if keys[pygame.K_RIGHT]:
-            ship2.model.rotation -= 0.02 * elapsed_ms
-        ship2.update(elapsed_ms, wind_vector)
+        key1.update(elapsed_ms)
+        key2.update(elapsed_ms)
+        ship1.update(elapsed_ms, wind.vector)
+        ship2.update(elapsed_ms, wind.vector)
 
         # Kamera zwischen beiden Schiffen
-        scene_cam.position.x = (ship.model.position.x + ship2.model.position.x) / 2
-        scene_cam.position.y = (ship.model.position.y + ship2.model.position.y) / 2
-        scene_cam.position.z = 1.5 * ship.model.position.distance_to(ship2.model.position)
+        scene_cam.position.x = (ship1.model.position.x + ship2.model.position.x) / 2
+        scene_cam.position.y = (ship1.model.position.y + ship2.model.position.y) / 2
+        distance = max(2, ship1.model.position.distance_to(ship2.model.position))
+        scene_cam.position.z = 1.5 * distance
         scene_cam.update(elapsed_ms)
 
         context.clear(color=(0.0, 0.0, 0.0, 0.0))
         water_tiles.render(scene_cam)#, 0, 40, 0, 40)
-        ship.render(scene_cam)
+        ship1.render(scene_cam)
         ship2.render(scene_cam)
-        wind_sprite.render(gui_cam.m_view, gui_cam.m_proj)
+        wind.render(gui_cam)
         pygame.display.flip()
 
         elapsed_ms = clock.tick(60)

@@ -25,9 +25,10 @@ class Camera:
 
     def update(self, elapsed_ms: int) -> None:
         # consider camera speed, elapsed time and zoom (z-position)
+        """
         velocity = CAM_SPEED * elapsed_ms * self.position.z
         keys = pygame.key.get_pressed()
-        """
+
         if keys[pygame.K_w]:
             self.position += self.up * velocity
         if keys[pygame.K_s]:
@@ -62,7 +63,7 @@ class Camera:
 
 
 class GuiCamera(Camera):
-    def __init__(self, window):
+    def __init__(self, window: pygame.Surface):
         super().__init__(window)
 
     def get_view_matrix(self) -> glm.mat4x4:
